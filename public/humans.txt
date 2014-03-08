@@ -3,7 +3,7 @@
 
 # TEAM
 
-    <name> -- <role> -- <twitter>
+    Troy Conrad Therrien -- lead -- @troytherrien
 
 # THANKS
 
