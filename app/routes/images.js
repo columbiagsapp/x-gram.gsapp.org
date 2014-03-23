@@ -16,45 +16,68 @@ var hasAuthorization = function(req, res, next) {
 
 */
 
+
+/////// DEPENDENCIES
 var colors  = require('colors');
 console.log('images.js entered'.cyan);
+/////// END DEPENDENCIES
 
+
+/////// INSTAGRAM
 var ig = require('instagram-node').instagram();
-var flickr = require('flickr-with-uploads');
 
+//import Instagram secrets from json file
 var instagram_secrets = require('../../secrets.json').instagram;
-var flickr_secrets = require('../../secrets.json').flickr;
 
-var cities = require('../../cities.json');
-var tags = [];
-
-var tag_index = 0;
-
-//global ID for the main interval for fetching from Instagram
-var interval_id;
-
-var FETCH_TIME = 3000; // fetch every 3 seconds
-
-
-
+//set up secrets for Instagram module
 ig.use({ client_id: instagram_secrets.client_id,
     client_secret: instagram_secrets.client_secret });
+/////// END INSTAGRAM
 
 
+/////// FLICKR
+var flickr = require('flickr-with-uploads');
 
+//import Flickr secrets from json file
+var flickr_secrets = require('../../secrets.json').flickr;
+
+//set up secrets for Flickr module
 var flickr_api = flickr(
   flickr_secrets.key, // consumer_key
   flickr_secrets.secret, // consumer_secret
   flickr_secrets.oauth_token,
   flickr_secrets.oauth_secret
 );
+/////// END FLICKR
 
 
+/////// GLOBALS
+
+//pull in array of cities from json file
+var cities = require('../../cities.json');
+
+var tags = []; //array to hold tags for all cities (eg. xrio, xbeirut)
+var tag_index = 0; //counter: current city fetching from Instagram by index in tags[] array
+var total_found = 0; //counter: total images found from Instagram for given city
+var current_city = ''; //pointer: current city fetching from Instagram
+
+var interval_id; //global ID for the main interval for fetching from Instagram
+
+var FETCH_TIME = 3000; //fetch every 3 seconds
+/////// END GLOBALS
+
+
+
+
+
+
+//Initializes downloading all undownloaded images from Instagram
 function initImageDownloadCycle(){
     images.downloadAll(flickr_api);
 }
 
-
+//Initializes fetching all images from Instagram and puts them in the database
+//to be later downloaded then uploaded to Flickr
 function initInstagramFetchCycle(){
 
     //create tags in form of xcity based on cities array
@@ -69,15 +92,16 @@ function initInstagramFetchCycle(){
     
 }
 
-var total_found = 0;
 
-var current_city = '';
-
+//Upsert images from Instagram into database
 function upsertImages(medias, idx){
+    //because run recursively, exit once all have been fetched
     if(idx >= medias.length) return false;
 
+    //call upsert from controllers > images
     images.upsert(medias, idx, current_city, upsertImages);
 }
+
 
 function fetchFromInstagram(){
     ig.tag_media_recent(tags[tag_index], function(err, medias, pagination, limit) {
@@ -85,8 +109,8 @@ function fetchFromInstagram(){
         if(err){
             console.log(err);
         }else{
-            console.log('\nFetched ' + medias.length + ' images'.cyan + ' from tag_index: ' + tag_index + ' = city: ' + tags[tag_index]);
-            //console.dir(medias);
+            console.log('\nFetched ' + medias.length + ' images'.cyan + ' from tag_index: ' + tag_index + ' = city: ' + tags[tag_index] + ' with limit: ' + limit + ' and pagination:');
+            console.dir(pagination);
 
             total_found += medias.length;
 

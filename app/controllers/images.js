@@ -66,9 +66,22 @@ exports.getByInstagramID = function(iid){
 }
 
 
+// returns true if image is clean, otherwise returns false
+function isImageCorrupt(img){
+	//check for required fields
+	if( !img.created_time ) return false;
+	if( !img.user.username ) return false;
+	if( !img.link ) return false;
+	if( !img.images.standard_resolution.url ) return false;
+	if( !img.id ) return false;
+
+	//all checks passed
+	return true;
+}
+
 
 /**
- * Upsert an image
+ * Upsert an Instagram image into the database
  */
 exports.upsert = function(im, idx, city, next) {
     Image.findOne({ instagram_id: im[idx].id}, function(err, image) {
@@ -81,45 +94,56 @@ exports.upsert = function(im, idx, city, next) {
         	var image = new Image();
 			//image._id = mongoose.Types.ObjectId(im.id);//set _id to Instagram id
 
-			image.created_time = im[idx].created_time;
-			image.username = im[idx].user.username;
-			image.caption = im[idx].caption.text;
-			image.link = im[idx].link;
+			//check if missing key information, in which case, break
+			if( isImageCorrupt(im[idx]) ){
 
-			if(im[idx].location){
-				image.latitude = im[idx].location.latitude;
-				image.longitude = im[idx].location.longitude;
+				//instagram ID: will check against this later for duplicates
+				image.instagram_id = im[idx].id;
+
+				image.created_time = im[idx].created_time;
+				image.username = im[idx].user.username;
+				image.image_url = im[idx].images.standard_resolution.url;
+				image.link = im[idx].link;
+
+				image.caption = (im[idx].caption) ? im[idx].caption.text : "";
+				
+				image.latitude = (im[idx].location) ? im[idx].location.latitude : null;
+				image.longitude = (im[idx].location) ? im[idx].location.longitude : null;
+
+				//additional fields, may use later
+				image.filter = im[idx].filter;
+				image.user_website = (im[idx].user.website) ? im[idx].user.website : null;
+
+				
+
+				//set flags for later downloading from Instagram and uploading to Flickr
+				image.downloaded = false;
+				image.uploaded = false;
+
+				//set the city based on the hashtag
+				image.city = city;
+
+				//save the image to the database
+			    image.save(function(err) {
+			        if (err) {
+			        	console.log('error attempting to save image');
+			        } else {
+			        	console.log('created new image');
+			        	idx++;//increment index
+			        	next(im, idx);//run recursively on the next image
+			        }
+			    });
+			//end if image is corrupted
 			}else{
-				image.latitude = null;
-				image.longitude = null;
+				console.log('******* IMAGE FLAWED skipping to next *******');
+	        	idx++;//increment index
+	        	next(im, idx);//run recursively on the next image
 			}
-
-			image.filter = im[idx].filter;
-			image.image_url = im[idx].images.standard_resolution.url;
-			image.user_website = im[idx].user.website;
-			image.instagram_id = im[idx].id;
-
-			image.downloaded = false;
-			image.uploaded = false;
-
-			image.city = city;
-
-
-		    image.save(function(err) {
-		        if (err) {
-		        	console.log('error attempting to save image');
-		        } else {
-		        	console.log('created new image');
-		        	idx++;//increment index
-		        	next(im, idx);
-		        }
-		    });
-
-
+		//end if image already exists
         }else{
         	console.log('image already exists, don\'t create');
         	idx++;//increment index
-		    next(im, idx);
+		    next(im, idx);//run recursively on the next image
         }
     });
 };
