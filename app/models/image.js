@@ -8,43 +8,86 @@ var mongoose = require('mongoose'),
 
 
 /**
- * Article Schema
+ * Image Schema
  */
-var ArticleSchema = new Schema({
-    created: {
-        type: Date,
-        default: Date.now
+var ImageSchema = new Schema({
+    created_time: {
+        type: String,
+        default: '',
+        trim: false
     },
-    title: {
+    username: {
+        type: String,
+        default: '',
+        trim: false
+    },
+    caption: {
         type: String,
         default: '',
         trim: true
     },
-    content: {
+    link: {
         type: String,
         default: '',
-        trim: true
+        trim: false
     },
-    user: {
-        type: Schema.ObjectId,
-        ref: 'User'
-    }
+    latitude: {
+        type: Number,
+        default: null
+    },
+    longitude: {
+        type: Number,
+        default: null
+    },
+    filter: {
+        type: String,
+        default: '',
+        trim: false
+    },
+    image_url: {
+        type: String,
+        default: '',
+        trim: false
+    },
+    user_website: {
+        type: String,
+        default: '',
+        trim: false
+    },
+    instagram_id: {
+        type: String,
+        default: '',
+        trim: false
+    },
+    downloaded: {
+        type: Boolean,
+        defaut: false
+    },
+    uploaded: {
+        type: Boolean,
+        defaut: false
+    },
+    city: {
+        type: String,
+        default: '',
+        trim: false
+    },
 });
 
 /**
  * Validations
  */
-ArticleSchema.path('title').validate(function(title) {
-    return title.length;
-}, 'Title cannot be blank');
+ImageSchema.path('image_url').validate(function(image_url) {
+    return image_url.length;
+}, 'Image URL cannot be blank');
 
 /**
  * Statics
  */
-ArticleSchema.statics.load = function(id, cb) {
+ImageSchema.statics.load = function(id, cb) {
     this.findOne({
         _id: id
     }).populate('user', 'name username').exec(cb);
 };
 
-mongoose.model('Article', ArticleSchema);
+mongoose.model('Image', ImageSchema);
