@@ -21,6 +21,11 @@ var ImageSchema = new Schema({
         default: '',
         trim: false
     },
+    fullname: {
+        type: String,
+        default: '',
+        trim: false
+    },
     caption: {
         type: String,
         default: '',
@@ -39,6 +44,7 @@ var ImageSchema = new Schema({
         type: Number,
         default: null
     },
+    tags: [String],
     filter: {
         type: String,
         default: '',
@@ -67,11 +73,20 @@ var ImageSchema = new Schema({
         type: Boolean,
         defaut: false
     },
+    added_to_flickr_set: {
+        type: Boolean,
+        default: false
+    },
     city: {
         type: String,
         default: '',
         trim: false
     },
+    flickr_id: {
+        type: String,
+        default: '',
+        trim: false
+    }
 });
 
 /**
