@@ -182,14 +182,18 @@ function fetchAllCitiesFromInstagram(){
 
 
 
-initInstagramFetchCycle();
+//initInstagramFetchCycle();
 
 
 
 module.exports = function(app) {
 
-    app.get('/images', function(req, res){
+    app.get('/fetch-images-from-instagram', function(req, res){
         initInstagramFetchCycle();
+    });
+
+    app.get('/upload-images-to-flickr', function(req, res){
+        initImageDownloadCycle();
     });
 
     app.all ('/callback', function(req, res){
