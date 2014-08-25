@@ -1,0 +1,15 @@
+{
+    "name": "X-Gram",
+    "url": "http://x-gram.gsapp.org/",
+    "version": "2.0",
+    "thumbnail": "screenshot.png",
+    "contributors": [
+        {
+            "name": "Troy Conrad Therrien",
+            "username": "troyth",
+            "role": "lead"
+        }
+    ],
+    "dependencies": [
+    ]
+}
